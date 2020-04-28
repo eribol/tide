@@ -4,7 +4,7 @@ use std::convert::TryFrom;
 use cookie::Cookie;
 use http_service::Body;
 use http_types::{
-    headers::{HeaderName, HeaderValue},
+    headers::{HeaderName, HeaderValues},
     StatusCode,
 };
 use mime::Mime;
@@ -281,7 +281,7 @@ impl<'a> From<&'a str> for Response {
 }
 
 impl IntoIterator for Response {
-    type Item = (HeaderName, Vec<HeaderValue>);
+    type Item = (HeaderName, HeaderValues);
     type IntoIter = http_types::headers::IntoIter;
 
     /// Returns a iterator of references over the remaining items.
@@ -292,7 +292,7 @@ impl IntoIterator for Response {
 }
 
 impl<'a> IntoIterator for &'a Response {
-    type Item = (&'a HeaderName, &'a Vec<HeaderValue>);
+    type Item = (&'a HeaderName, &'a HeaderValues);
     type IntoIter = http_types::headers::Iter<'a>;
 
     #[inline]
@@ -302,7 +302,7 @@ impl<'a> IntoIterator for &'a Response {
 }
 
 impl<'a> IntoIterator for &'a mut Response {
-    type Item = (&'a HeaderName, &'a mut Vec<HeaderValue>);
+    type Item = (&'a HeaderName, &'a mut HeaderValues);
     type IntoIter = http_types::headers::IterMut<'a>;
 
     #[inline]

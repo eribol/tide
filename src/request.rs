@@ -1,6 +1,6 @@
 use cookie::Cookie;
 use http_types::{
-    headers::{HeaderName, HeaderValue},
+    headers::{HeaderName, HeaderValues},
     Method, StatusCode, Url, Version,
 };
 use route_recognizer::Params;
@@ -329,7 +329,7 @@ impl<State: Send + Sync + 'static> Into<Response> for Request<State> {
 }
 
 impl<State> IntoIterator for Request<State> {
-    type Item = (HeaderName, Vec<HeaderValue>);
+    type Item = (HeaderName, HeaderValues);
     type IntoIter = http_types::headers::IntoIter;
 
     /// Returns a iterator of references over the remaining items.
@@ -340,7 +340,7 @@ impl<State> IntoIterator for Request<State> {
 }
 
 impl<'a, State> IntoIterator for &'a Request<State> {
-    type Item = (&'a HeaderName, &'a Vec<HeaderValue>);
+    type Item = (&'a HeaderName, &'a HeaderValues);
     type IntoIter = http_types::headers::Iter<'a>;
 
     #[inline]
@@ -350,7 +350,7 @@ impl<'a, State> IntoIterator for &'a Request<State> {
 }
 
 impl<'a, State> IntoIterator for &'a mut Request<State> {
-    type Item = (&'a HeaderName, &'a mut Vec<HeaderValue>);
+    type Item = (&'a HeaderName, &'a mut HeaderValues);
     type IntoIter = http_types::headers::IterMut<'a>;
 
     #[inline]
