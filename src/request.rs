@@ -123,7 +123,7 @@ impl<State> Request<State> {
     ///
     /// let mut app = tide::new();
     /// app.at("/").get(|req: Request<()>| async move {
-    ///     assert_eq!(req.header(&"X-Forwarded-For".parse().unwrap()), Some(&vec!["127.0.0.1".parse().unwrap()]));
+    ///     assert_eq!(req.header(&"X-Forwarded-For".parse().unwrap()).unwrap()[0].as_str(), "127.0.0.1");
     ///     Ok("")
     /// });
     /// app.listen("127.0.0.1:8080").await?;
@@ -133,7 +133,7 @@ impl<State> Request<State> {
     pub fn header(
         &self,
         key: &http_types::headers::HeaderName,
-    ) -> Option<&Vec<http_types::headers::HeaderValue>> {
+    ) -> Option<&http_types::headers::HeaderValues> {
         self.request.header(key)
     }
 

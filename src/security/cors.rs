@@ -1,5 +1,5 @@
 use crate::utils::BoxFuture;
-use http_types::headers::HeaderValue;
+use http_types::headers::{HeaderValue, HeaderValues};
 use http_types::{headers, Method, StatusCode};
 
 use crate::middleware::{Middleware, Next};
@@ -84,10 +84,10 @@ impl CorsMiddleware {
         self
     }
 
-    fn build_preflight_response(&self, origin: &[HeaderValue]) -> http_types::Response {
+    fn build_preflight_response(&self, origins: &HeaderValues) -> http_types::Response {
         let mut response = http_types::Response::new(StatusCode::Ok);
         response
-            .insert_header(headers::ACCESS_CONTROL_ALLOW_ORIGIN, origin.clone())
+            .insert_header(headers::ACCESS_CONTROL_ALLOW_ORIGIN, &origins[..])
             .unwrap();
         response
             .insert_header(
@@ -147,18 +147,18 @@ impl CorsMiddleware {
 impl<State: Send + Sync + 'static> Middleware<State> for CorsMiddleware {
     fn handle<'a>(&'a self, req: Request<State>, next: Next<'a, State>) -> BoxFuture<'a, Result> {
         Box::pin(async move {
-            let origins = req.header(&headers::ORIGIN).cloned().unwrap_or_default();
-
             // TODO: how should multiple origin values be handled?
-            let origin = match origins.first() {
-                Some(origin) => origin,
+            let origins = match req.header(&headers::ORIGIN).cloned() {
+                Some(origins) => origins,
                 None => {
                     // This is not a CORS request if there is no Origin header
                     return next.run(req).await;
                 }
             };
 
-            if !self.is_valid_origin(origin) {
+            let origin = origins.last();
+
+            if !self.is_valid_origin(&origin) {
                 return Ok(http_types::Response::new(StatusCode::Unauthorized).into());
             }
 
@@ -387,8 +387,8 @@ mod test {
 
             assert_eq!(res.status(), 200);
             assert_eq!(
-                res.header(&headers::ACCESS_CONTROL_ALLOW_ORIGIN),
-                Some(&vec![origin.parse().unwrap()])
+                res.header(&headers::ACCESS_CONTROL_ALLOW_ORIGIN).unwrap()[0],
+                origin
             );
         }
     }

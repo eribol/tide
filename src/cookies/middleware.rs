@@ -77,14 +77,19 @@ pub(crate) struct CookieData {
 
 impl CookieData {
     pub(crate) fn from_request<S>(req: &Request<S>) -> Self {
-        let cookie_jar = req.request.cookies().and_then(|cookies| {
-            let mut jar = CookieJar::new();
-            for cookie in cookies.into_iter() {
-                jar.add_original(cookie.into_owned());
-            }
+        let cookie_jar = req
+            .request
+            .header(&headers::COOKIE)
+            .and_then(|header_values| {
+                let mut jar = CookieJar::new();
+                for header_value in header_values {
+                    if let Ok(cookie) = cookie::Cookie::parse(header_value.to_string()) {
+                        jar.add_original(cookie);
+                    }
+                }
 
-            Ok(jar)
-        });
+                Some(jar)
+            });
         let content = Arc::new(RwLock::new(cookie_jar.unwrap_or_default()));
 
         CookieData { content }

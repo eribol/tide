@@ -4,6 +4,7 @@ use async_std::prelude::*;
 use async_std::task;
 use http_types::{headers, StatusCode};
 use std::time::Duration;
+use test_utils::headers;
 
 use tide::Response;
 
@@ -35,14 +36,8 @@ async fn chunked_large() -> Result<(), http_types::Error> {
         task::sleep(Duration::from_millis(100)).await;
         let mut res = surf::get(format!("http://{}", port)).await?;
         assert_eq!(res.status(), 200);
-        assert_eq!(
-            res.header(&"transfer-encoding".parse().unwrap()),
-            Some(&vec![http_types::headers::HeaderValue::from_ascii(
-                b"chunked"
-            )
-            .unwrap()])
-        );
-        assert_eq!(res.header(&"content-length".parse().unwrap()), None);
+        assert_eq!(headers(&res, "transfer-encoding"), Some(vec!["chunked"]));
+        assert_eq!(headers(&res, "content-length"), None);
         let string = res.body_string().await?;
         assert_eq!(string, TEXT.to_string());
         Ok(())
